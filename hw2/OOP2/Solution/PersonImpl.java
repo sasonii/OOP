@@ -58,7 +58,6 @@ public class PersonImpl implements Person {
 			throw new ConnectionAlreadyExistException();
 		}
 		m_friends_set.add(p);
-		p.addFriend(this);
 	}
 
 	@Override
@@ -68,7 +67,7 @@ public class PersonImpl implements Person {
 
 	@Override
 	public Iterable<Status> getStatusesRecent() {
-		m_statuses.sort((o1, o2) -> o1.getId() - o2.getId());
+		m_statuses.sort((o1, o2) -> o2.getId() - o1.getId());
 		return m_statuses;
 	}
 
@@ -76,9 +75,9 @@ public class PersonImpl implements Person {
 	public Iterable<Status> getStatusesPopular() {
 		m_statuses.sort((o1, o2) -> {
 			if (o1.getLikesCount() != o2.getLikesCount()) {
-				return o1.getLikesCount() - o2.getLikesCount();
+				return o2.getLikesCount() - o1.getLikesCount();
 			}
-			return o1.getId() - o2.getId();
+			return o2.getId() - o1.getId();
 		});
 		return m_statuses;
 	}
@@ -86,7 +85,7 @@ public class PersonImpl implements Person {
 	@Override
 	public boolean equals(Object o)
 	{
-		if (!(o instanceof  Status))
+		if (!(o instanceof  Person))
 		{
 			return false;
 		}
