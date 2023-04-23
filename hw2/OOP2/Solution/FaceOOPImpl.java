@@ -77,7 +77,7 @@ public class FaceOOPImpl implements FaceOOP {
 	}
 
 	public Person joinFaceOOP(Integer id, String name) throws PersonAlreadyInSystemException {
-		if(m_persons.stream().anyMatch(obj -> obj.getId() == id)){
+		if(m_persons.stream().anyMatch(obj -> obj.getId().equals(id))){
 			throw new PersonAlreadyInSystemException();
 		}
 		Person newPerson = new PersonImpl(id, name);
