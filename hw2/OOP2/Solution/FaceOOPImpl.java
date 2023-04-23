@@ -77,6 +77,10 @@ public class FaceOOPImpl implements FaceOOP {
 	}
 
 	public Person joinFaceOOP(Integer id, String name) throws PersonAlreadyInSystemException {
+		if (id == null || name == null)
+		{
+			return null;
+		}
 		if(m_persons.stream().anyMatch(obj -> obj.getId().equals(id))){
 			throw new PersonAlreadyInSystemException();
 		}
@@ -93,6 +97,10 @@ public class FaceOOPImpl implements FaceOOP {
 
 	@Override
 	public Person getUser(Integer id) throws PersonNotInSystemException {
+		if (id == null)
+		{
+			return null;
+		}
 		Optional<Person> p = m_persons.stream().filter(obj -> obj.getId().equals(id)).findFirst();
 		if(p.isPresent()){
 			return p.get();
@@ -105,6 +113,10 @@ public class FaceOOPImpl implements FaceOOP {
 	@Override
 	public void addFriendship(Person p1, Person p2)
 			throws PersonNotInSystemException, SamePersonException, ConnectionAlreadyExistException {
+		if(p1 == null || p2 == null)
+		{
+			return null;
+		}
 		if(!m_persons.contains(p1) || !m_persons.contains(p1)){
 			throw new PersonNotInSystemException();
 		}
@@ -121,6 +133,10 @@ public class FaceOOPImpl implements FaceOOP {
 	public StatusIterator getFeedByRecent(Person p)
 			throws PersonNotInSystemException
 	{
+		if (p == null)
+		{
+			return null;
+		}
 		if(!m_persons.contains(p)){
 			throw new PersonNotInSystemException();
 		}
@@ -139,6 +155,10 @@ public class FaceOOPImpl implements FaceOOP {
 	public StatusIterator getFeedByPopular(Person p)
 			throws PersonNotInSystemException
 	{
+		if (p == null)
+		{
+			return null;
+		}
 		if(!m_persons.contains(p)){
 			throw new PersonNotInSystemException();
 		}
@@ -156,6 +176,10 @@ public class FaceOOPImpl implements FaceOOP {
 	public Integer rank(Person source, Person target)
 			throws PersonNotInSystemException, ConnectionDoesNotExistException
 	{
+		if (source == null || target == null)
+		{
+			return null;
+		}
 		if(!m_persons.contains(source) || !m_persons.contains(target)){
 			throw new PersonNotInSystemException();
 		}
