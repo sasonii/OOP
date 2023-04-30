@@ -115,7 +115,7 @@ public class FaceOOPImpl implements FaceOOP {
 			throws PersonNotInSystemException, SamePersonException, ConnectionAlreadyExistException {
 		if(p1 == null || p2 == null)
 		{
-			return null;
+			return;
 		}
 		if(!m_persons.contains(p1) || !m_persons.contains(p1)){
 			throw new PersonNotInSystemException();
