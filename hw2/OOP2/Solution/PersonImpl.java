@@ -54,7 +54,7 @@ public class PersonImpl implements Person {
 
 	@Override
 	public void addFriend(Person p) throws SamePersonException, ConnectionAlreadyExistException {
-		if(p == this){
+		if(p.equals(this)){
 			throw new SamePersonException();
 		}
 		if(m_friends_set.contains(p)){
@@ -104,5 +104,10 @@ public class PersonImpl implements Person {
 			return -1;
 		else
 			return 0;
+	}
+
+	@Override
+	public int hashCode() {
+		return m_id;
 	}
 }

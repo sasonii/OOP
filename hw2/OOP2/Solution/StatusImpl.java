@@ -76,4 +76,9 @@ public class StatusImpl implements Status {
 		Status statusToCompare = (Status) o;
 		return (_publisher.equals(statusToCompare.getPublisher()) && _id.equals(statusToCompare.getId()));
 	}
+
+	@Override
+	public int hashCode() {
+		return _id;
+	}
 }

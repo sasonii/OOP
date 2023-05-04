@@ -117,7 +117,7 @@ public class FaceOOPImpl implements FaceOOP {
 		{
 			return;
 		}
-		if(!m_persons.contains(p1) || !m_persons.contains(p1)){
+		if(!m_persons.contains(p1) || !m_persons.contains(p2)){
 			throw new PersonNotInSystemException();
 		}
 		if(p1.equals(p2)){
