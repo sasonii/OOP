@@ -3,6 +3,7 @@ import org.junit.Assert;
 import org.junit.ComparisonFailure;
 import provided.*;
 
+import java.lang.reflect.Constructor;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -11,12 +12,30 @@ import java.lang.reflect.Constructor;
 
 
 public class StoryTesterImpl implements StoryTester{
+    private static Field[] getAllDeclaredFields(Class<?> currentClass) {
 
-    public static Object backup(Object obj) throws IllegalAccessException, InstantiationException, CloneNotSupportedException {
+        Field[] fields = currentClass.getDeclaredFields();
+
+        // If the current class has a superclass, recursively get its fields too
+        Class<?> superClass = currentClass.getSuperclass();
+        if (superClass != null && !superClass.getName().equals("java.lang.Object")) {
+            Field[] superFields = getAllDeclaredFields(superClass);
+            Field[] allFields = new Field[fields.length + superFields.length];
+            System.arraycopy(fields, 0, allFields, 0, fields.length);
+            System.arraycopy(superFields, 0, allFields, fields.length, superFields.length);
+            fields = allFields;
+        }
+
+        return fields;
+    }
+    public static Object backup(Object obj, Class<?> testClass, boolean isInner) throws IllegalAccessException, InstantiationException, CloneNotSupportedException, InvocationTargetException {
             Class<?> clazz = obj.getClass();
-            Object backupObj = clazz.newInstance();
+            Object backupObj = testClass.getDeclaredConstructors()[0].newInstance();
+            if(isInner){
+                backupObj = clazz.getDeclaredConstructors()[0].newInstance(backupObj);
+            }
 
-            Field[] fields = clazz.getDeclaredFields();
+            Field[] fields = getAllDeclaredFields(clazz);
             for (Field field : fields) {
                 field.setAccessible(true);
 
@@ -34,7 +53,7 @@ public class StoryTesterImpl implements StoryTester{
                         continue;
                     } catch (NoSuchMethodException | InvocationTargetException e) {
                         // Handle the exception or log the error message
-                        e.printStackTrace();
+                        //e.printStackTrace();
                     }
                 }
 
@@ -46,7 +65,7 @@ public class StoryTesterImpl implements StoryTester{
                     continue;
                 } catch (NoSuchMethodException | InvocationTargetException e) {
                     // Handle the exception or log the error message
-                    e.printStackTrace();
+                    //e.printStackTrace();
                 }
 
                 field.set(backupObj,  fieldValue);
@@ -68,6 +87,7 @@ public class StoryTesterImpl implements StoryTester{
                 // Check if the method has the Given annotation
                 Annotation givenAnnotation = method.getAnnotation(annotationClass);
                 if (givenAnnotation != null && areStringsEqualExceptLastWord(getAnnotationValue(givenAnnotation),searchString)){
+                    method.setAccessible(true);
                     return method; // Found a method with the Given annotation and matching string
                 }
             }
@@ -147,18 +167,53 @@ public class StoryTesterImpl implements StoryTester{
         return null;
     }
     public void testOnInheritanceTree(String story, Class<?> testClass) throws IllegalArgumentException, WordNotFoundException, InstantiationException, IllegalAccessException, InvocationTargetException, CloneNotSupportedException, StoryTestExceptionImpl {
+        runTest(story, testClass, false, null);
+    }
+    private static Method getMethodFromNestedClassWithGivenAnnotationAndString(Class<?> testClass, Class<? extends Annotation> annotationClass, String searchString) {
+        Method m = getMethodWithGivenAnnotationAndString(testClass, annotationClass, searchString);
+        if(m != null) {
+            return m;
+        }
+        for (Class<?> nestedClass : testClass.getDeclaredClasses()) {
+            m = getMethodFromNestedClassWithGivenAnnotationAndString(nestedClass, annotationClass, searchString);
+            if(m != null){
+                return m;
+            }
+        }
+        return null;
+    }
+    private static Method getMethod(Class<?> testClass, Class<? extends Annotation> annotationClass, String searchString, boolean isNested){
+        if(isNested) {
+            return getMethodFromNestedClassWithGivenAnnotationAndString(testClass, annotationClass, searchString);
+        }
+        return getMethodWithGivenAnnotationAndString(testClass, annotationClass, searchString);
+    }
+    private static void runTest(String story, Class<?> testClass, boolean isNested, Class<?> innerTestClass) throws IllegalArgumentException, WordNotFoundException, InstantiationException, IllegalAccessException, InvocationTargetException, CloneNotSupportedException, StoryTestExceptionImpl {
         if(story == null || testClass == null){
             throw new IllegalArgumentException();
         }
+        Object testObject;
+        if(isNested){
+            try {
+                testObject = innerTestClass.getDeclaredConstructors()[0].newInstance();
+                isNested = false;
+            } catch (IllegalArgumentException e) {
+                testObject = testClass.getDeclaredConstructors()[0].newInstance();
+                testObject = innerTestClass.getDeclaredConstructors()[0].newInstance(testObject);
+            }
+        }
+        else {
+            testObject = testClass.getDeclaredConstructors()[0].newInstance();
+        }
 
-        Class<?> classTest = testClass.getClass(); // redundant?
-        Object testObject = testClass.newInstance();
+
+//        Object testObject = testClass.newInstance();
 
         // Split the string into an array of lines
         String[] lines = story.split("\n");
 
         String[] firstLineWords = lines[0].split("\\s+", 2);
-        Method m = getMethodWithGivenAnnotationAndString(testClass, Given.class, firstLineWords[1]);
+        Method m = getMethod(testClass, Given.class, firstLineWords[1], isNested);
         if(m == null){
             throw new GivenNotFoundException();
         }
@@ -170,53 +225,54 @@ public class StoryTesterImpl implements StoryTester{
             m.invoke(testObject, getLastWord(firstLineWords[1]));
         }
 
-        Object testBackup = backup(testObject);
+        Object testBackup = backup(testObject, testClass, isNested);
 
         StoryTestExceptionImpl storyTestException = null;
 
         // Iterate through each When, Then
-        for (int i = 1; i < lines.length; i += 2) {
+        for (int i = 1; i < lines.length; i++) {
             testObject = (testBackup);
-            testBackup = backup(testObject);
-
-            String[] whenWords = lines[i].split("\\s+", 2);
-            m = getMethodWithGivenAnnotationAndString(testClass, When.class, whenWords[1]);
-            if(m == null){
-                throw new WhenNotFoundException();
-            }
-            String[] thenWords = lines[i+1].split("\\s+", 2);
-            paramType = m.getParameterTypes()[0].getName();
-            if(paramType.equals("java.lang.Integer")){
-                m.invoke(testObject, createIntegerFromLastWord(whenWords[1]));
-            } else {
-                m.invoke(testObject, getLastWord(whenWords[1]));
-            }
-
-            m = getMethodWithGivenAnnotationAndString(testClass, Then.class, thenWords[1]);
-            if(m == null){
-                throw new ThenNotFoundException();
-            }
-            paramType = m.getParameterTypes()[0].getName();
-            try {
+            testBackup = backup(testObject, testClass, isNested);
+            String[] sentenceWords = lines[i].split("\\s+", 2);
+            if(sentenceWords[0].equals("When")) {
+                String[] whenWords = sentenceWords;
+                m = getMethod(testClass, When.class, whenWords[1], isNested);
+                if (m == null) {
+                    throw new WhenNotFoundException();
+                }
+                paramType = m.getParameterTypes()[0].getName();
                 if (paramType.equals("java.lang.Integer")) {
-                    m.invoke(testObject, createIntegerFromLastWord(thenWords[1]));
+                    m.invoke(testObject, createIntegerFromLastWord(whenWords[1]));
                 } else {
-                    m.invoke(testObject, getLastWord(thenWords[1]));
+                    m.invoke(testObject, getLastWord(whenWords[1]));
                 }
-            } catch (InvocationTargetException e) {
-                Throwable cause = e.getCause();
-                if (cause instanceof ComparisonFailure) {
-                    ComparisonFailure assertionError = (ComparisonFailure) cause;
-                    if(storyTestException == null){
-                        storyTestException = new StoryTestExceptionImpl(thenWords[1],assertionError.getExpected(), assertionError.getActual());
-
+            } else {
+                String[] thenWords = sentenceWords;
+                m = getMethod(testClass, Then.class, thenWords[1], isNested);
+                if (m == null) {
+                    throw new ThenNotFoundException();
+                }
+                paramType = m.getParameterTypes()[0].getName();
+                try {
+                    if (paramType.equals("java.lang.Integer")) {
+                        m.invoke(testObject, createIntegerFromLastWord(thenWords[1]));
                     } else {
-                        storyTestException.increaseNumOfFails();
+                        m.invoke(testObject, getLastWord(thenWords[1]));
                     }
-                } else {
-                    throw e;
-                }
+                } catch (InvocationTargetException e) {
+                    Throwable cause = e.getCause();
+                    if (cause instanceof ComparisonFailure) {
+                        ComparisonFailure assertionError = (ComparisonFailure) cause;
+                        if (storyTestException == null) {
+                            storyTestException = new StoryTestExceptionImpl(lines[i], assertionError.getExpected(), assertionError.getActual());
 
+                        } else {
+                            storyTestException.increaseNumOfFails();
+                        }
+                    } else {
+                        throw e;
+                    }
+                }
             }
         }
 
@@ -224,10 +280,31 @@ public class StoryTesterImpl implements StoryTester{
             throw storyTestException;
         }
     }
-
-    public void testOnNestedClasses(String story, Class<?> testClass){
+    public void testOnNestedClasses(String story, Class<?> testClass) throws WordNotFoundException, InvocationTargetException, StoryTestExceptionImpl, InstantiationException, IllegalAccessException, CloneNotSupportedException {
         if(story == null || testClass == null){
             throw new IllegalArgumentException();
         }
+        // Split the string into an array of lines
+        String[] lines = story.split("\n");
+
+        String[] firstLineWords = lines[0].split("\\s+", 2);
+        Class<?> innerTestClass = findNestedClassWithGivenAnnotationAndString(testClass, Given.class, firstLineWords[1]);
+        if(innerTestClass == null){
+            throw new GivenNotFoundException();
+        }
+        runTest(story, testClass, true, innerTestClass);
+    }
+
+    private static Class<?> findNestedClassWithGivenAnnotationAndString(Class<?> testClass, Class<? extends Annotation> annotationClass, String searchString) {
+        Method m = getMethodWithGivenAnnotationAndString(testClass, annotationClass, searchString);
+        if(m != null) {
+            return testClass;
+        }
+        for (Class<?> nestedClass : testClass.getDeclaredClasses()) {
+            if(findNestedClassWithGivenAnnotationAndString(nestedClass, annotationClass, searchString) != null){
+                return nestedClass;
+            }
+        }
+        return null;
     }
 }
