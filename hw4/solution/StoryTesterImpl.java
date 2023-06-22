@@ -10,6 +10,9 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Field;
 import java.lang.reflect.Constructor;
 
+import java.util.ArrayList;
+import java.util.List;
+
 
 public class StoryTesterImpl implements StoryTester{
     private static Field[] getAllDeclaredFields(Class<?> currentClass) {
@@ -28,11 +31,24 @@ public class StoryTesterImpl implements StoryTester{
 
         return fields;
     }
-    public static Object backup(Object obj, Class<?> testClass, boolean isInner) throws IllegalAccessException, InstantiationException, CloneNotSupportedException, InvocationTargetException {
+    public static Object backup(Object obj, Class<?> testClass, boolean isInner, List<Class<?>> classes) throws IllegalAccessException, InstantiationException, CloneNotSupportedException, InvocationTargetException {
             Class<?> clazz = obj.getClass();
-            Object backupObj = testClass.getDeclaredConstructors()[0].newInstance();
+            Constructor<?> initialConstructor = testClass.getDeclaredConstructors()[0];
+            initialConstructor.setAccessible(true);
+            Object backupObj = initialConstructor.newInstance();
             if(isInner){
-                backupObj = clazz.getDeclaredConstructors()[0].newInstance(backupObj);
+                for (int i = classes.size() - 2; i >= 0; i--) {
+                    Class<?> innerClass = classes.get(i);
+                    initialConstructor = innerClass.getDeclaredConstructors()[0];
+                    initialConstructor.setAccessible(true);
+                    backupObj = initialConstructor.newInstance(backupObj);
+                }
+//                constructor = clazz.getDeclaredConstructors()[0];
+//                constructor.setAccessible(true);
+//                backupObj = constructor.newInstance(backupObj);
+                // maybe there is no need to this
+//                testObject = testClass.getDeclaredConstructors()[0].newInstance();
+//                testObject = innerTestClass.getDeclaredConstructors()[0].newInstance(testObject);
             }
 
             Field[] fields = getAllDeclaredFields(clazz);
@@ -47,11 +63,26 @@ public class StoryTesterImpl implements StoryTester{
 
                 if (fieldValue instanceof Cloneable) {
                     try {
-                        Method cloneMethod = fieldValue.getClass().getMethod("clone");
-                        Object clonedValue = cloneMethod.invoke(fieldValue);
-                        field.set(backupObj, clonedValue);
-                        continue;
-                    } catch (NoSuchMethodException | InvocationTargetException e) {
+                        // Get all methods of the current class
+                        Method[] methods = fieldValue.getClass().getDeclaredMethods();
+                        boolean found = false;
+                        // Iterate through the methods
+                        for (Method method : methods) {
+                            // Check if the method has the Given annotation
+//                            System.out.println(method.getName());
+                            if(method.getName().equals("clone")) {
+                                method.setAccessible(true);
+                                Object clonedValue = method.invoke(fieldValue);
+                                field.set(backupObj, clonedValue);
+                                found = true;
+                                break;
+                            }
+                        }
+                        if(found){
+                            continue;
+                        }
+
+                    } catch (InvocationTargetException e) {
                         // Handle the exception or log the error message
                         //e.printStackTrace();
                     }
@@ -59,13 +90,34 @@ public class StoryTesterImpl implements StoryTester{
 
                 Constructor<?> copyConstructor = null;
                 try {
-                    copyConstructor = fieldValue.getClass().getConstructor(fieldValue.getClass());
-                    Object copiedValue = copyConstructor.newInstance(fieldValue);
-                    field.set(backupObj, copiedValue);
-                    continue;
-                } catch (NoSuchMethodException | InvocationTargetException e) {
+                    boolean found = false;
+                    Constructor<?>[] constructors = clazz.getDeclaredConstructors();
+                    for (Constructor<?> constructor : constructors) {
+                        Class<?>[] parameterTypes = constructor.getParameterTypes();
+//                        if(parameterTypes.length == 0){
+//                            constructor.setAccessible(true);
+//                            Object copiedValue = constructor.newInstance();
+//                            field.set(backupObj, copiedValue);
+//                            break;
+//                        }
+                        if (parameterTypes.length == 1 && parameterTypes[0].equals(fieldValue.getClass())) {
+                            // Found the desired constructor
+                            constructor.setAccessible(true);
+                            Object copiedValue = constructor.newInstance(fieldValue);
+                            field.set(backupObj, copiedValue);
+                            found = true;
+                            break;
+                        }
+                    }
+//                    copyConstructor = fieldValue.getClass().getConstructor(fieldValue.getClass());
+                    if(found){
+                        continue;
+                    }
+                } catch (InvocationTargetException e) {
                     // Handle the exception or log the error message
                     //e.printStackTrace();
+                } catch (IllegalArgumentException e2){
+
                 }
 
                 field.set(backupObj,  fieldValue);
@@ -188,26 +240,31 @@ public class StoryTesterImpl implements StoryTester{
         }
         return getMethodWithGivenAnnotationAndString(testClass, annotationClass, searchString);
     }
-    private static void runTest(String story, Class<?> testClass, boolean isNested, Class<?> innerTestClass) throws IllegalArgumentException, WordNotFoundException, InstantiationException, IllegalAccessException, InvocationTargetException, CloneNotSupportedException, StoryTestExceptionImpl {
+
+
+    private static void runTest(String story, Class<?> testClass, boolean isNested, List<Class<?>> classes) throws IllegalArgumentException, WordNotFoundException, InstantiationException, IllegalAccessException, InvocationTargetException, CloneNotSupportedException, StoryTestExceptionImpl {
         if(story == null || testClass == null){
             throw new IllegalArgumentException();
         }
         Object testObject;
         if(isNested){
-            try {
-                testObject = innerTestClass.getDeclaredConstructors()[0].newInstance();
-                isNested = false;
-            } catch (IllegalArgumentException e) {
-                testObject = testClass.getDeclaredConstructors()[0].newInstance();
-                testObject = innerTestClass.getDeclaredConstructors()[0].newInstance(testObject);
+            Class<?> clazz = classes.get(classes.size() - 1);
+            Constructor<?> constructor = clazz.getDeclaredConstructors()[0];
+            constructor.setAccessible(true);
+            testObject = constructor.newInstance();
+
+            for (int i = classes.size() - 2; i >= 0; i--) {
+                Class<?> innerClass = classes.get(i);
+                constructor = innerClass.getDeclaredConstructors()[0];
+                constructor.setAccessible(true);
+                testObject = constructor.newInstance(testObject);
             }
         }
         else {
-            testObject = testClass.getDeclaredConstructors()[0].newInstance();
+            Constructor<?> constructor = testClass.getDeclaredConstructors()[0];
+            constructor.setAccessible(true);
+            testObject = constructor.newInstance();
         }
-
-
-//        Object testObject = testClass.newInstance();
 
         // Split the string into an array of lines
         String[] lines = story.split("\n");
@@ -219,29 +276,29 @@ public class StoryTesterImpl implements StoryTester{
         }
 
         String paramType = m.getParameterTypes()[0].getName();
-        if(paramType.equals("java.lang.Integer")){
+        if(paramType.equals("java.lang.Integer") || paramType.equals("int")){
             m.invoke(testObject, createIntegerFromLastWord(firstLineWords[1]));
         } else {
             m.invoke(testObject, getLastWord(firstLineWords[1]));
         }
 
-        Object testBackup = backup(testObject, testClass, isNested);
+        Object testBackup = backup(testObject, testClass, isNested, classes);
 
         StoryTestExceptionImpl storyTestException = null;
 
         // Iterate through each When, Then
         for (int i = 1; i < lines.length; i++) {
-            testObject = (testBackup);
-            testBackup = backup(testObject, testClass, isNested);
             String[] sentenceWords = lines[i].split("\\s+", 2);
             if(sentenceWords[0].equals("When")) {
+                testObject = (testBackup);
+                testBackup = backup(testObject, testClass, isNested, classes);
                 String[] whenWords = sentenceWords;
                 m = getMethod(testClass, When.class, whenWords[1], isNested);
                 if (m == null) {
                     throw new WhenNotFoundException();
                 }
                 paramType = m.getParameterTypes()[0].getName();
-                if (paramType.equals("java.lang.Integer")) {
+                if (paramType.equals("java.lang.Integer") || paramType.equals("int")) {
                     m.invoke(testObject, createIntegerFromLastWord(whenWords[1]));
                 } else {
                     m.invoke(testObject, getLastWord(whenWords[1]));
@@ -254,7 +311,7 @@ public class StoryTesterImpl implements StoryTester{
                 }
                 paramType = m.getParameterTypes()[0].getName();
                 try {
-                    if (paramType.equals("java.lang.Integer")) {
+                    if (paramType.equals("java.lang.Integer") || paramType.equals("int")) {
                         m.invoke(testObject, createIntegerFromLastWord(thenWords[1]));
                     } else {
                         m.invoke(testObject, getLastWord(thenWords[1]));
@@ -288,21 +345,31 @@ public class StoryTesterImpl implements StoryTester{
         String[] lines = story.split("\n");
 
         String[] firstLineWords = lines[0].split("\\s+", 2);
-        Class<?> innerTestClass = findNestedClassWithGivenAnnotationAndString(testClass, Given.class, firstLineWords[1]);
+
+        List<Class<?>> classes = new ArrayList<>();
+        Class<?> innerTestClass = findNestedClassWithGivenAnnotationAndString(testClass, Given.class, firstLineWords[1], classes);
         if(innerTestClass == null){
             throw new GivenNotFoundException();
         }
-        runTest(story, testClass, true, innerTestClass);
+        runTest(story, testClass, true, classes);
     }
-
-    private static Class<?> findNestedClassWithGivenAnnotationAndString(Class<?> testClass, Class<? extends Annotation> annotationClass, String searchString) {
+//    private static List<Class<?>> findNestedClassesWithGivenAnnotationAndString(
+//            Class<?> testClass, Class<? extends Annotation> annotationClass, String searchString) {
+//        List<Class<?>> classes = new ArrayList<>();
+//        findNestedClassesWithGivenAnnotationAndString(testClass, annotationClass, searchString, classes);
+//        return classes;
+//    }
+    private static Class<?> findNestedClassWithGivenAnnotationAndString(Class<?> testClass, Class<? extends Annotation> annotationClass, String searchString,List<Class<?>> classes) {
         Method m = getMethodWithGivenAnnotationAndString(testClass, annotationClass, searchString);
         if(m != null) {
+            classes.add(testClass);
             return testClass;
         }
         for (Class<?> nestedClass : testClass.getDeclaredClasses()) {
-            if(findNestedClassWithGivenAnnotationAndString(nestedClass, annotationClass, searchString) != null){
-                return nestedClass;
+            Class<?> returnClass = findNestedClassWithGivenAnnotationAndString(nestedClass, annotationClass, searchString, classes);
+            if(returnClass != null){
+                classes.add(testClass);
+                return returnClass;
             }
         }
         return null;
