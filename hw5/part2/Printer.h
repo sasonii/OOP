@@ -30,12 +30,7 @@ struct Printer<List<Head, Tail...>>{
     }
 };
 
-template<>
-struct Printer<List<>>{
-    static void print(std::ostream& output){
-        output << std::endl;
-    }
-};
+c
 
 template<CellType Type, Direction Dir, int Length>
 struct Printer<BoardCell<Type, Dir, Length>>{

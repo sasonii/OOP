@@ -13,6 +13,7 @@
 template<typename T>
 class Subject {
 public:
+    Subject() = default;
 
     void notify(const T& param){
         for (Observer<T>* observer: observers)
