@@ -10,7 +10,7 @@ struct Conditional;
 
 template <typename X, typename Y>
 struct Conditional<true,X,Y> {
-using value = X;
+    using value = X;
 };
 
 template <typename X, typename Y>
