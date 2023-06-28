@@ -99,7 +99,7 @@ void move_vehicle_printing(){
     typedef GameBoard<Transpose<gameBoard::board>::matrix> flipBoard;
     Printer<flipBoard>::print(std::cout);
 
-    typedef MoveVehicleOneStep<gameBoard::board, 1, 0, RIGHT>::board updated_board;
+    typedef MoveVehicleOneStep<gameBoard::board, 1, 0, RIGHT, X>::board updated_board;
     Printer<updated_board>::print(std::cout);
 
     // PART 2
@@ -111,7 +111,7 @@ void move_vehicle_printing(){
             >> gameBoard2;
     Printer<gameBoard2>::print(std::cout);
 
-    typedef MoveVehicleOneStep<gameBoard2::board, 0, 1, RIGHT>::board updated_board2;
+    typedef MoveVehicleOneStep<gameBoard2::board, 0, 1, RIGHT, A>::board updated_board2;
     Printer<updated_board2>::print(std::cout);
 
     // PART 3
@@ -139,7 +139,7 @@ void move_vehicle_printing(){
     >> gameBoard4;
     Printer<gameBoard4>::print(std::cout);
 
-    typedef MoveVehicleOneStep<gameBoard4::board, 0, 1, LEFT>::board updated_board4;
+    typedef MoveVehicleOneStep<gameBoard4::board, 0, 1, LEFT, A>::board updated_board4;
     Printer<updated_board4>::print(std::cout);
 
     // PART 5
@@ -151,9 +151,9 @@ void move_vehicle_printing(){
     >> gameBoard5;
     Printer<gameBoard5>::print(std::cout);
 
-    typedef MoveVehicleOneStep<gameBoard5::board, 0, 1, LEFT>::board updated_board5;
+    typedef MoveVehicleOneStep<gameBoard5::board, 0, 1, LEFT, A>::board updated_board5;
     Printer<updated_board5>::print(std::cout);
-    typedef MoveVehicleOneStep<gameBoard5::board, 0, 2, LEFT>::board updated_board5_2;
+    typedef MoveVehicleOneStep<gameBoard5::board, 0, 2, LEFT, A>::board updated_board5_2;
     Printer<updated_board5_2>::print(std::cout);
 
     // PART 6
@@ -211,14 +211,57 @@ void move_vehicle_printing(){
     Printer<updated_board7_6>::print(std::cout);
 }
 
+void rush_hour_printing(){
+    typedef GameBoard< List<
+            List < BoardCell< X , RIGHT , 2>, BoardCell< X , LEFT , 2>, BoardCell< EMPTY , RIGHT , 0> >,
+            List < BoardCell< EMPTY , RIGHT , 0>, BoardCell< EMPTY , RIGHT , 0>, BoardCell< A , RIGHT , 1> >
+    > > gameBoard;
+    Printer<gameBoard>::print(std::cout);
+    static_assert(CheckWin<gameBoard>::result, "Fail");
+
+    typedef GameBoard< List<
+            List < BoardCell< EMPTY , RIGHT , 1>, BoardCell< EMPTY , RIGHT , 0>, BoardCell< EMPTY , RIGHT , 0>, BoardCell< EMPTY , RIGHT , 0>, BoardCell< O , DOWN , 3>, BoardCell< EMPTY , RIGHT , 0> >,
+            List < BoardCell< EMPTY , RIGHT , 2>, BoardCell< EMPTY , RIGHT , 0>, BoardCell< A , RIGHT , 2>, BoardCell< A , LEFT , 2>, BoardCell< O , DOWN , 3>, BoardCell< EMPTY , RIGHT , 0> >,
+            List < BoardCell< EMPTY , RIGHT , 3>, BoardCell< EMPTY , RIGHT , 0>, BoardCell< X , RIGHT , 2>, BoardCell< X , LEFT , 2>, BoardCell< O , UP , 3>, BoardCell< EMPTY , RIGHT , 0> >,
+            List < BoardCell< EMPTY , RIGHT , 0>, BoardCell< EMPTY , RIGHT , 0>, BoardCell< EMPTY , RIGHT , 0>, BoardCell< EMPTY , RIGHT , 0>, BoardCell< EMPTY , RIGHT , 0>, BoardCell< EMPTY , RIGHT , 0> >,
+            List < BoardCell< EMPTY , RIGHT , 0>, BoardCell< EMPTY , RIGHT , 0>, BoardCell< B , DOWN , 2>, BoardCell< P , RIGHT , 3>, BoardCell< P , RIGHT , 3>, BoardCell< P , LEFT , 3> >,
+            List < BoardCell< EMPTY , RIGHT , 0>, BoardCell< EMPTY , RIGHT , 0>, BoardCell< B , UP , 2>, BoardCell< EMPTY , RIGHT , 0>, BoardCell< C , RIGHT , 2>, BoardCell< C , LEFT , 2> >
+    > > gameBoard2;
+    Printer<gameBoard2>::print(std::cout);
+    typedef List<
+            Move < B, UP, 1 > , Move < C, LEFT, 4 > , Move < A, LEFT, 2 > , Move < X, LEFT, 2 > , Move < B, UP, 3 > , Move < P, LEFT, 3 > , Move < O, DOWN, 3 >
+    > moves;
+//
+//
+    static_assert(List<BoardCell< EMPTY , RIGHT , 0>,BoardCell< EMPTY , RIGHT , 0>,BoardCell< EMPTY , RIGHT , 0>>::size == 3, "Fail");
+    static_assert(List<>::size == 0, "Fail");
+    typedef MoveVehicle<gameBoard2, 2, 3, LEFT, 2>::board b1; // Valid move
+    typedef MoveVehicle<gameBoard2, 5,2,UP, 1>::board b2;
+    typedef MoveVehicle<b2, 5,5,LEFT, 4>::board b3;
+    static_assert(CheckSolution<gameBoard2, moves>::result, "Fail"); // Game should be solved
+
+    typedef GameBoard< List<
+            List < BoardCell< X , RIGHT , 2>, BoardCell< X , LEFT , 2>, BoardCell< A , DOWN , 1> >,
+            List < BoardCell< EMPTY , RIGHT , 0>, BoardCell< EMPTY , RIGHT , 0>, BoardCell< EMPTY , RIGHT , 0> >
+    > > gameBoard3;
+    Printer<gameBoard3>::print(std::cout);
+    typedef List<
+            Move<A,DOWN,1>
+    > moves3;
+    static_assert(CheckWin<gameBoard>::result, "Fail");
+    static_assert(CheckSolution<gameBoard3, moves3>::result, "Fail");
+}
+
 int main() {
-//    list_printing();
+    list_printing();
 
-//    utilities_printing();
+    utilities_printing();
 
-//    move_printing();
+    move_printing();
 
     move_vehicle_printing();
+
+    rush_hour_printing();
 
     return 0;
 }
