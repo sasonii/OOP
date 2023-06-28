@@ -11,11 +11,11 @@
 //template<typename TYPE, Direction, int>
 //struct BoardCell;
 
-template <CellType TYPE,Direction Y, int X>
+template <CellType TYPE,Direction Dir, int Len>
 struct BoardCell {
     static constexpr CellType type = TYPE;
-    static constexpr Direction direction = Y;
-    static constexpr int length = X;
+    static constexpr Direction direction = Dir;
+    static constexpr int length = Len;
 };
 
 #endif //HW5_BOARDCELL_H

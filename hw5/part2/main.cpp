@@ -83,24 +83,142 @@ void move_printing(){
     std::cout << "Val 1: " << amount2 << std::endl;
 }
 
-int main() {
-    //list_printing();
+void move_vehicle_printing(){
+    std::cout << "---MoveVehicle PRINTING---" << std::endl << std::endl;
 
-//    utilities_printing();
-
-    move_printing();
-
+    // PART 1
+    std::cout << "PART 1" << std::endl;
     typedef GameBoard<List< List< BoardCell<EMPTY, UP, 0>, BoardCell<EMPTY, UP, 0>>,
-            List< BoardCell<X, RIGHT, 1>, BoardCell<A, UP, 1>>,
+            List< BoardCell<X, RIGHT, 1>, BoardCell<EMPTY, UP, 0>>,
             List< BoardCell<EMPTY, UP, 0>, BoardCell<EMPTY, UP, 0>>>> gameBoard;
-    Printer<gameBoard>::print(std::cout);
 
     Printer<gameBoard>::print(std::cout);
     std::cout << gameBoard::width << std::endl;
-    std::cout << gameBoard::length << std::endl;
-    
-    typedef Transpose<gameBoard::board>::matrix flipBoard;
+    std::cout << gameBoard::length << std::endl << std::endl;
+
+    typedef GameBoard<Transpose<gameBoard::board>::matrix> flipBoard;
     Printer<flipBoard>::print(std::cout);
-//    typedef MoveVehicle<gameBoard, > name;
+
+    typedef MoveVehicleOneStep<gameBoard::board, 1, 0, RIGHT>::board updated_board;
+    Printer<updated_board>::print(std::cout);
+
+    // PART 2
+    std::cout << "PART 2" << std::endl;
+    typedef GameBoard<List<
+            List< BoardCell<EMPTY, UP, 0>, BoardCell<A, UP, 1>, BoardCell<EMPTY, UP, 0>>,
+            List< BoardCell<X, RIGHT, 1>, BoardCell<EMPTY, UP, 0>, BoardCell<EMPTY, UP, 0>>,
+            List< BoardCell<EMPTY, UP, 0>, BoardCell<EMPTY, UP, 0>, BoardCell<EMPTY, UP, 0>>
+            >> gameBoard2;
+    Printer<gameBoard2>::print(std::cout);
+
+    typedef MoveVehicleOneStep<gameBoard2::board, 0, 1, RIGHT>::board updated_board2;
+    Printer<updated_board2>::print(std::cout);
+
+    // PART 3
+    std::cout << "PART 3" << std::endl;
+    typedef GameBoard<List<
+            List< BoardCell<A, RIGHT, 2>, BoardCell<A, UP, 2>, BoardCell<EMPTY, UP, 0>>,
+            List< BoardCell<X, RIGHT, 1>, BoardCell<EMPTY, UP, 0>, BoardCell<EMPTY, UP, 0>>,
+            List< BoardCell<EMPTY, UP, 0>, BoardCell<EMPTY, UP, 0>, BoardCell<EMPTY, UP, 0>>
+    >> gameBoard3;
+    Printer<gameBoard3>::print(std::cout);
+
+    typedef GameBoard<Transpose<gameBoard3::board>::matrix> flipBoard3;
+    Printer<flipBoard3>::print(std::cout);
+
+    typedef MoveVehicle<gameBoard3, 0, 0, RIGHT,1>::board updated_board3;
+    Printer<updated_board3>::print(std::cout);
+
+
+    // PART 4
+    std::cout << "PART 4" << std::endl;
+    typedef GameBoard<List<
+            List< BoardCell<EMPTY, UP, 0>, BoardCell<A, UP, 1>, BoardCell<EMPTY, UP, 0>>,
+            List< BoardCell<X, RIGHT, 1>, BoardCell<EMPTY, UP, 0>, BoardCell<EMPTY, UP, 0>>,
+            List< BoardCell<EMPTY, UP, 0>, BoardCell<EMPTY, UP, 0>, BoardCell<EMPTY, UP, 0>>
+    >> gameBoard4;
+    Printer<gameBoard4>::print(std::cout);
+
+    typedef MoveVehicleOneStep<gameBoard4::board, 0, 1, LEFT>::board updated_board4;
+    Printer<updated_board4>::print(std::cout);
+
+    // PART 5
+    std::cout << "PART 5" << std::endl;
+    typedef GameBoard<List<
+            List< BoardCell<EMPTY, UP, 0>, BoardCell<A, LEFT, 2>, BoardCell<A, LEFT, 2>>,
+            List< BoardCell<X, RIGHT, 1>, BoardCell<EMPTY, UP, 0>, BoardCell<EMPTY, UP, 0>>,
+            List< BoardCell<EMPTY, UP, 0>, BoardCell<EMPTY, UP, 0>, BoardCell<EMPTY, UP, 0>>
+    >> gameBoard5;
+    Printer<gameBoard5>::print(std::cout);
+
+    typedef MoveVehicleOneStep<gameBoard5::board, 0, 1, LEFT>::board updated_board5;
+    Printer<updated_board5>::print(std::cout);
+    typedef MoveVehicleOneStep<gameBoard5::board, 0, 2, LEFT>::board updated_board5_2;
+    Printer<updated_board5_2>::print(std::cout);
+
+    // PART 6
+    std::cout << "PART 6" << std::endl;
+    typedef GameBoard<List<
+            List< BoardCell<EMPTY, UP, 0>, BoardCell<EMPTY, UP, 0>, BoardCell<A, LEFT, 1>>,
+            List< BoardCell<X, RIGHT, 1>, BoardCell<EMPTY, UP, 0>, BoardCell<EMPTY, UP, 0>>,
+            List< BoardCell<EMPTY, UP, 0>, BoardCell<EMPTY, UP, 0>, BoardCell<B, LEFT, 1>>
+    >> gameBoard6;
+    Printer<gameBoard6>::print(std::cout);
+
+    typedef MoveVehicle<gameBoard6, 0, 2, LEFT,2>::board updated_board6;
+    Printer<updated_board6>::print(std::cout);
+
+    typedef MoveVehicle<gameBoard6, 0, 2, LEFT,1>::board updated_board6_2;
+    Printer<updated_board6_2>::print(std::cout);
+
+    typedef MoveVehicle<gameBoard6, 2, 2, LEFT,1>::board updated_board6_3;
+    Printer<updated_board6_3>::print(std::cout);
+
+    typedef MoveVehicle<gameBoard6, 2, 2, LEFT,2>::board updated_board6_4;
+    Printer<updated_board6_4>::print(std::cout);
+
+    // PART 7
+    std::cout << "PART 7" << std::endl;
+    typedef GameBoard<List<
+            List< BoardCell<EMPTY, UP, 0>, BoardCell<EMPTY, UP, 0>, BoardCell<EMPTY, UP, 0>>,
+            List< BoardCell<X, RIGHT, 1>, BoardCell<EMPTY, UP, 0>, BoardCell<A, UP, 2>>,
+            List< BoardCell<EMPTY, UP, 0>, BoardCell<B, UP, 1>, BoardCell<A, UP, 2>>
+    >> gameBoard7;
+    Printer<gameBoard7>::print(std::cout);
+
+    typedef GameBoard<Transpose<gameBoard7::board>::matrix> flipBoard7;
+    Printer<flipBoard7>::print(std::cout);
+
+    typedef MoveVehicle<gameBoard7, 2, 1, UP,1>::board updated_board7;
+    Printer<updated_board7>::print(std::cout);
+
+    typedef MoveVehicle<gameBoard7, 2, 1, UP,2>::board updated_board7_2;
+    Printer<updated_board7_2>::print(std::cout);
+
+    typedef MoveVehicle<updated_board7_2, 0, 1, DOWN,1>::board updated_board7_3;
+    Printer<updated_board7_3>::print(std::cout);
+
+    typedef MoveVehicle<updated_board7_2, 0, 1, DOWN,2>::board updated_board7_4;
+    Printer<updated_board7_4>::print(std::cout);
+
+    typedef MoveVehicle<gameBoard7, 2, 2, UP,1>::board updated_board7_5;
+    Printer<updated_board7_5>::print(std::cout);
+
+    typedef GameBoard<Transpose<updated_board7_5::board>::matrix> flipBoard7_2;
+    Printer<flipBoard7_2>::print(std::cout);
+
+    typedef MoveVehicle<updated_board7_5, 1, 2, DOWN,1>::board updated_board7_6;
+    Printer<updated_board7_6>::print(std::cout);
+}
+
+int main() {
+//    list_printing();
+
+//    utilities_printing();
+
+//    move_printing();
+
+    move_vehicle_printing();
+
     return 0;
 }
