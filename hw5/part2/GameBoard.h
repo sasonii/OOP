@@ -8,19 +8,13 @@
 #include "BoardCell.h"
 #include "List.h"
 
-//template<typename BOARDListList>
-//struct GameBoard;
-//
-//template<typename T>
-//struct GameBoard <List<List<T>>>{
-//    using board = List<List<T>>;
-//};
+template<typename List>
+struct GameBoard ;
 
-template<typename BoardCells>
+template <typename List>
 struct GameBoard {
-    using board = BoardCells;
-    static constexpr int width = sizeof(board);
-    static constexpr int length = sizeof(board::head);
+    using board = List;
+    static constexpr int width = board::head::size;
+    static constexpr int length = List::size;
 };
-
 #endif //HW5_GAMEBOARD_H

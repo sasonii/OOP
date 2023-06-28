@@ -27,15 +27,15 @@ struct Printer<List<>>{
         output << std::endl;
     }
 };
-
-template<typename Head, typename... Tail>
-struct Printer<List<Head, Tail...>>{
-static void print(std::ostream& output){
-    Printer<Head>::print(output);
-    output << " ";
-    Printer<List<Tail...>>::print(output);
-}
-};
+//
+//template<typename Head, typename... Tail>
+//struct Printer<List<Head, Tail...>>{
+//static void print(std::ostream& output){
+//    Printer<Head>::print(output);
+//    output << " ";
+//    Printer<List<Tail...>>::print(output);
+//}
+//};
 
 //template<typename Head, typename... Tail>
 //struct Printer<PrependList<Head, List<Tail...>>>{

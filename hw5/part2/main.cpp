@@ -3,8 +3,9 @@
 //
 #include <iostream>
 #include "temp.h"
-#include "List.h" // Include the List header file
-#include "Utilities.h"
+#include "RushHour.h"
+#include "Printer.h"
+#include "TransposeList.h"
 
 void list_printing(){
     std::cout << "---LIST PRINTING---" << std::endl << std::endl;
@@ -74,10 +75,32 @@ void utilities_printing(){
     Printer<test2>::print(std::cout);
 }
 
+void move_printing(){
+    std::cout << "---Move PRINTING---" << std::endl << std::endl;
+//    int amount = Move<EMPTY, UP, 1>::amount; // should not compile
+
+    int amount2 = Move<X, RIGHT, 1>::amount;
+    std::cout << "Val 1: " << amount2 << std::endl;
+}
+
 int main() {
     //list_printing();
 
-    utilities_printing();
+//    utilities_printing();
 
+    move_printing();
+
+    typedef GameBoard<List< List< BoardCell<EMPTY, UP, 0>, BoardCell<EMPTY, UP, 0>>,
+            List< BoardCell<X, RIGHT, 1>, BoardCell<A, UP, 1>>,
+            List< BoardCell<EMPTY, UP, 0>, BoardCell<EMPTY, UP, 0>>>> gameBoard;
+    Printer<gameBoard>::print(std::cout);
+
+    Printer<gameBoard>::print(std::cout);
+    std::cout << gameBoard::width << std::endl;
+    std::cout << gameBoard::length << std::endl;
+    
+    typedef Transpose<gameBoard::board>::matrix flipBoard;
+    Printer<flipBoard>::print(std::cout);
+//    typedef MoveVehicle<gameBoard, > name;
     return 0;
 }

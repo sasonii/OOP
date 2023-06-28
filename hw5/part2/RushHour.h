@@ -10,5 +10,7 @@
 #include "BoardCell.h"
 #include "GameBoard.h"
 #include "List.h"
+#include "MoveVehicle.h"
+#include "Utilities.h"
 
 #endif //HW5_RUSHHOUR_H
