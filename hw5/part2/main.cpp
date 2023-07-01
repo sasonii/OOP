@@ -99,7 +99,7 @@ void move_vehicle_printing(){
     typedef GameBoard<Transpose<gameBoard::board>::matrix> flipBoard;
     Printer<flipBoard>::print(std::cout);
 
-    typedef MoveVehicleOneStep<gameBoard::board, 1, 0, RIGHT, X>::board updated_board;
+    typedef MoveVehicleOneStep<gameBoard::board, 1, 0, RIGHT, X, false>::board updated_board;
     Printer<updated_board>::print(std::cout);
 
     // PART 2
@@ -111,7 +111,7 @@ void move_vehicle_printing(){
             >> gameBoard2;
     Printer<gameBoard2>::print(std::cout);
 
-    typedef MoveVehicleOneStep<gameBoard2::board, 0, 1, RIGHT, A>::board updated_board2;
+    typedef MoveVehicleOneStep<gameBoard2::board, 0, 1, RIGHT, A, false>::board updated_board2;
     Printer<updated_board2>::print(std::cout);
 
     // PART 3
@@ -139,7 +139,7 @@ void move_vehicle_printing(){
     >> gameBoard4;
     Printer<gameBoard4>::print(std::cout);
 
-    typedef MoveVehicleOneStep<gameBoard4::board, 0, 1, LEFT, A>::board updated_board4;
+    typedef MoveVehicleOneStep<gameBoard4::board, 0, 1, LEFT, A, false>::board updated_board4;
     Printer<updated_board4>::print(std::cout);
 
     // PART 5
@@ -151,9 +151,9 @@ void move_vehicle_printing(){
     >> gameBoard5;
     Printer<gameBoard5>::print(std::cout);
 
-    typedef MoveVehicleOneStep<gameBoard5::board, 0, 1, LEFT, A>::board updated_board5;
+    typedef MoveVehicleOneStep<gameBoard5::board, 0, 1, LEFT, A, false>::board updated_board5;
     Printer<updated_board5>::print(std::cout);
-    typedef MoveVehicleOneStep<gameBoard5::board, 0, 2, LEFT, A>::board updated_board5_2;
+    typedef MoveVehicleOneStep<gameBoard5::board, 0, 2, LEFT, A, false>::board updated_board5_2;
     Printer<updated_board5_2>::print(std::cout);
 
     // PART 6

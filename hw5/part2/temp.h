@@ -21,12 +21,7 @@ struct Int {
 template<typename>
 struct Printer;
 
-template<>
-struct Printer<List<>>{
-    static void print(std::ostream& output){
-        output << std::endl;
-    }
-};
+
 //
 //template<typename Head, typename... Tail>
 //struct Printer<List<Head, Tail...>>{
